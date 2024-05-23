@@ -123,6 +123,7 @@ namespace TournamentAPI.Api.Controllers
             await _uOW.CompleteAsync();
 
             return NoContent();
+
         }
 
         //private async Task<bool> TournamentExists(int id)
