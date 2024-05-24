@@ -8,7 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using TournamentAPI.Data.Data;
 using TournamentAPI.Core.Entities;
 using TournamentAPI.Core.Repositories;
+using TournamentAPI.Core.Dto;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using AutoMapper;
+using TournamentAPI.Core.Dto.TournamentDto;
 
 namespace TournamentAPI.Api.Controllers
 {
@@ -24,10 +27,12 @@ namespace TournamentAPI.Api.Controllers
         //}
 
         private readonly IUOW _uOW;
+        private readonly IMapper _mapper;
 
-        public TournamentsController(IUOW uOW)
+        public TournamentsController(IUOW uOW, IMapper mapper)
         {
             _uOW = uOW;
+            _mapper = mapper;
         }
 
 
@@ -35,15 +40,16 @@ namespace TournamentAPI.Api.Controllers
 
         // GET: api/Tournaments
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Tournament>>> GetTournaments()
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournaments()
         {
             var tournaments=await _uOW.TournamentRepository.GetAllAsync();
-            return Ok(tournaments);
+            var tournamentsDto=_mapper.Map<IEnumerable<TournamentDto>>(tournaments);
+            return Ok(tournamentsDto);
         }
 
         // GET: api/Tournaments/1
         [HttpGet("{id}")]
-        public async Task<ActionResult<Tournament>> GetTournament(int id)
+        public async Task<ActionResult<TournamentDto>> GetTournament(int id)
         {
             var tournament = await _uOW.TournamentRepository.GetAsync(id);
 
@@ -52,37 +58,38 @@ namespace TournamentAPI.Api.Controllers
                 return NotFound();
             }
 
+            var tournamentDto=_mapper.Map<TournamentDto>(tournament);
+
             return Ok(tournament);
         }
 
         // PUT: api/Tournaments/1
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournament(int id, Tournament tournament)
+        public async Task<IActionResult> PutTournament(int id, TournamentDto tournamentDto)
         {
-            if (id != tournament.Id)
+            if (id != tournamentDto.Id)
             {
-                return BadRequest();
+                return BadRequest("Id doesnot match");
             }
 
-            //_context.Entry(tournament).State = EntityState.Modified;
+            var tournamentToChange = await _uOW.TournamentRepository.GetAsync(id);
+            if (tournamentToChange == null)
+            {
+                return NotFound($"Not found {id}");
+            }
+
+        
+            _mapper.Map(tournamentDto, tournamentToChange);
 
             try
             {
-                var tournamentToChange = await _uOW.TournamentRepository.GetAsync(id);
-                if (tournamentToChange == null)
-                {
-                    return NotFound();
-                }
-
-                tournamentToChange.Title= tournament.Title;
-                tournamentToChange.StartDate=tournament.StartDate;
                 _uOW.TournamentRepository.Update(tournamentToChange);
                 await _uOW.CompleteAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_uOW.TournamentRepository.AnyAsync(id).Result)
+                if (!await _uOW.TournamentRepository.AnyAsync(id))
                 {
                     return NotFound();
                 }
@@ -93,19 +100,73 @@ namespace TournamentAPI.Api.Controllers
             }
 
             return NoContent();
+
+
+
+
+
+            //_context.Entry(tournament).State = EntityState.Modified;
+
+            //try
+            //{
+            //    var tournamentToChange = await _uOW.TournamentRepository.GetAsync(id);
+            //    if (tournamentToChange == null)
+            //    {
+            //        return NotFound();
+            //    }
+
+            //    tournamentToChange.Title= tournament.Title;
+            //    tournamentToChange.StartDate=tournament.StartDate;
+            //    _uOW.TournamentRepository.Update(tournamentToChange);
+            //    await _uOW.CompleteAsync();
+            //}
+            //catch (DbUpdateConcurrencyException)
+            //{
+            //    if (!_uOW.TournamentRepository.AnyAsync(id).Result)
+            //    {
+            //        return NotFound();
+            //    }
+            //    else
+            //    {
+            //        throw;
+            //    }
+            //}
+
+            //return NoContent();
         }
 
         // POST: api/Tournaments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Tournament>> PostTournament(Tournament tournament)
+        public async Task<ActionResult<TournamentDto>> PostTournament(TournamentDto tournamentDto)
         {
+            if (tournamentDto == null)
+            {
+                return BadRequest("check why does not work-one");
+            }
+
+            var tournament =_mapper.Map<Tournament>(tournamentDto);
             _uOW.TournamentRepository.Add(tournament);
-            await _uOW.CompleteAsync();
+            try
+            {
+                await _uOW.CompleteAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return StatusCode(409, "check why does not work-two");
+            }
+
+
             //_context.Tournaments.Add(tournament);
             //await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTournament", new { id = tournament.Id }, tournament);
+            //var cTournamentDto = _mapper.Map<TournamentDto>(tournament);
+            //return CreatedAtAction("GetTournament", new { id = tournament.Id }, cTournamentDto);
+
+
+
+            var createdTournamentDto = _mapper.Map<TournamentDto>(tournament);
+            return CreatedAtAction("GetTournament", new { id = tournament.Id }, createdTournamentDto);
         }
 
         // DELETE: api/Tournaments/5

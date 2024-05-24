@@ -10,6 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddAutoMapper(typeof(TournamentMappings));
+
 builder.Services.AddDbContext<TournamentApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TournamentApiContext")));
 
