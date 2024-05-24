@@ -32,10 +32,24 @@ namespace TournamentAPI.Data.Repositories
             if (tournament == null)
             {
                 
-                throw new KeyNotFoundException($"Tournament id {id} was not found.");
+                throw new KeyNotFoundException($"Id {id} was not found.");
             }
             return tournament;
         }
+
+        public async Task<IEnumerable<Tournament>> GetAsyncExtraParameter(int id, bool extraParameter)
+        {
+            if (extraParameter)
+            {              
+                return await _context.Tournaments.Where(t => t.Title.Length > 10).ToListAsync();
+            }
+            else
+            {                
+                var tournament = await _context.Tournaments.FindAsync(id);
+                return tournament != null ? new List<Tournament> { tournament } : new List<Tournament>();
+            }
+        }
+
 
 
         public async Task<bool> AnyAsync(int id)

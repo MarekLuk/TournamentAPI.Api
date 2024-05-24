@@ -46,18 +46,25 @@ namespace TournamentAPI.Api.Controllers
 
         // GET: api/Tournaments/1
         [HttpGet("{id}")]
-        public async Task<ActionResult<TournamentDto>> GetTournament(int id)
+        public async Task<ActionResult<TournamentDto>> GetTournament(int id, bool extraParameter=false)
         {
-            var tournament = await _uOW.TournamentRepository.GetAsync(id);
+            var tournament = await _uOW.TournamentRepository.GetAsyncExtraParameter(id, extraParameter);
 
             if (tournament == null)
             {
                 return NotFound();
             }
 
-            var tournamentDto=_mapper.Map<TournamentDto>(tournament);
-
-            return Ok(tournament);
+            if (!extraParameter)
+            {
+                var tournamentDto = _mapper.Map<TournamentDto>(tournament.SingleOrDefault());
+                return Ok(tournamentDto);
+            }
+            else
+            {
+                var tournamentDto2 = _mapper.Map<IEnumerable<TournamentDto>>(tournament);
+                return Ok(tournamentDto2);
+            }
         }
 
         // PUT: api/Tournaments/1
