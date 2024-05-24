@@ -12,6 +12,8 @@ using TournamentAPI.Core.Dto;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using AutoMapper;
 using TournamentAPI.Core.Dto.TournamentDto;
+using Microsoft.AspNetCore.JsonPatch;
+using TournamentAPI.Data.Repositories;
 
 namespace TournamentAPI.Api.Controllers
 {
@@ -97,6 +99,55 @@ namespace TournamentAPI.Api.Controllers
             return NoContent();
         }
 
+
+
+        // PATCH: api/Tournaments/1
+        [HttpPatch("{tournamentId}")]
+
+        public async Task<ActionResult<TournamentDto>> PatchTournament
+            (int tournamentId, JsonPatchDocument<TournamentDto> patchDocument)
+        {
+            if (patchDocument==null) 
+            {
+                return NoContent();
+            }
+
+            var tournament= await _uOW.TournamentRepository.GetAsync(tournamentId);
+
+            if (patchDocument == null)
+            {
+                return NotFound();
+            }
+
+
+            var tournamentDto=_mapper.Map<TournamentDto>(tournament);
+
+
+            patchDocument.ApplyTo(tournamentDto, ModelState);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            _mapper.Map(tournamentDto, tournament);
+
+            _uOW.TournamentRepository.Update(tournament);
+
+            try
+            {
+                await _uOW.CompleteAsync();
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
+
+            return Ok(_mapper.Map<TournamentDto>(tournament));
+
+        }
+
+
         // POST: api/Tournaments
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -122,7 +173,7 @@ namespace TournamentAPI.Api.Controllers
             return CreatedAtAction("GetTournament", new { id = tournament.Id }, createdTournamentDto);
         }
 
-        // DELETE: api/Tournaments/5
+        // DELETE: api/Tournaments/1
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTournament(int id)
         {
