@@ -15,12 +15,7 @@ namespace TournamentAPI.Api.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
-        //private readonly TournamentApiContext _context;
-
-        //public GamesController(TournamentApiContext context)
-        //{
-        //    _context = context;
-        //}
+        
 
         private readonly IUOW _uOW;
 
@@ -39,14 +34,14 @@ namespace TournamentAPI.Api.Controllers
             var games = await _uOW.GameRepository.GetAllAsync();
             return Ok(games);
 
-            //return await _context.Games.ToListAsync();
+            
         }
 
         // GET: api/Games/1
         [HttpGet("{id}")]
         public async Task<ActionResult<Game>> GetGame(int id)
         {
-            //var game = await _context.Games.FindAsync(id);
+           
             var game=await _uOW.GameRepository.GetAsync(id);
 
             if (game == null)
@@ -67,12 +62,12 @@ namespace TournamentAPI.Api.Controllers
                 return BadRequest();
             }
 
-            //_context.Entry(game).State = EntityState.Modified;
+           
 
             try
             {
                 var gameToChange = await _uOW.GameRepository.GetAsync(id);
-                //await _context.SaveChangesAsync();
+             
                 if (gameToChange==null)
                 {
                     return NotFound();
@@ -104,10 +99,7 @@ namespace TournamentAPI.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Game>> PostGame(Game game)
         {
-            //_context.Games.Add(game);
-            //await _context.SaveChangesAsync();
-
-            //return CreatedAtAction("GetGame", new { id = game.Id }, game);
+          
             _uOW.GameRepository.Add(game);
             await _uOW.CompleteAsync();
             return CreatedAtAction("GetGame", new { id = game.Id }, game);
@@ -117,7 +109,7 @@ namespace TournamentAPI.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGame(int id)
         {
-            //var game = await _context.Games.FindAsync(id);
+            
             var game=await _uOW.GameRepository.GetAsync(id);
 
             if (game == null)
@@ -125,8 +117,6 @@ namespace TournamentAPI.Api.Controllers
                 return NotFound();
             }
 
-            //_context.Games.Remove(game);
-            //await _context.SaveChangesAsync();
 
             _uOW.GameRepository.Remove(game);
             await _uOW.CompleteAsync();
@@ -134,9 +124,6 @@ namespace TournamentAPI.Api.Controllers
             return NoContent();
         }
 
-        //private bool GameExists(int id)
-        //{
-        //    return _context.Games.Any(e => e.Id == id);
-        //}
+      
     }
 }

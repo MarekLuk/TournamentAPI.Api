@@ -14,18 +14,7 @@ namespace TournamentAPI.Data.Data
     public class TournamentMappings:Profile
     {
         public TournamentMappings() {
-            //  //CreateMap<Foo, FooDto>();m
-            //  CreateMap<Tournament, TournamentDto>()
-            //  .ForMember(dest => dest.Id, opt => opt.Ignore())
-            //  .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-            //  .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
-            //  .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.StartDate.AddMonths(33)));
-
-
-            //  CreateMap<Game, GameDto>()
-            //.ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
-            //.ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.Time));
-
+         
             CreateMap<Tournament, TournamentDto>().ReverseMap();
             CreateMap<Game, GameDto>().ReverseMap();
 

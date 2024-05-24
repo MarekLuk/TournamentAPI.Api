@@ -13,8 +13,9 @@ namespace TournamentAPI.Core.Dto.TournamentDto
     {
         public int Id { get; set; }
 
-      
-        public string? Title { get; set; }
+        [Required(ErrorMessage = "Title required")]
+        [StringLength(100, ErrorMessage = "Max 100 characters")]
+        public string Title { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate => StartDate.AddMonths(33);
         public ICollection<Game>? Games { get; set; }

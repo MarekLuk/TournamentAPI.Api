@@ -19,12 +19,7 @@ namespace TournamentAPI.Api.Controllers
     [ApiController]
     public class TournamentsController : ControllerBase
     {
-        //private readonly TournamentApiContext _context;
-
-        //public TournamentsController(TournamentApiContext context)
-        //{
-        //    _context = context;
-        //}
+       
 
         private readonly IUOW _uOW;
         private readonly IMapper _mapper;
@@ -68,15 +63,15 @@ namespace TournamentAPI.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTournament(int id, TournamentDto tournamentDto)
         {
-            if (id != tournamentDto.Id)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("Id doesnot match");
+                return BadRequest(ModelState);
             }
 
             var tournamentToChange = await _uOW.TournamentRepository.GetAsync(id);
             if (tournamentToChange == null)
             {
-                return NotFound($"Not found {id}");
+                return NotFound();
             }
 
         
@@ -91,7 +86,7 @@ namespace TournamentAPI.Api.Controllers
             {
                 if (!await _uOW.TournamentRepository.AnyAsync(id))
                 {
-                    return NotFound();
+                    return StatusCode(500, "Failed");
                 }
                 else
                 {
@@ -100,39 +95,6 @@ namespace TournamentAPI.Api.Controllers
             }
 
             return NoContent();
-
-
-
-
-
-            //_context.Entry(tournament).State = EntityState.Modified;
-
-            //try
-            //{
-            //    var tournamentToChange = await _uOW.TournamentRepository.GetAsync(id);
-            //    if (tournamentToChange == null)
-            //    {
-            //        return NotFound();
-            //    }
-
-            //    tournamentToChange.Title= tournament.Title;
-            //    tournamentToChange.StartDate=tournament.StartDate;
-            //    _uOW.TournamentRepository.Update(tournamentToChange);
-            //    await _uOW.CompleteAsync();
-            //}
-            //catch (DbUpdateConcurrencyException)
-            //{
-            //    if (!_uOW.TournamentRepository.AnyAsync(id).Result)
-            //    {
-            //        return NotFound();
-            //    }
-            //    else
-            //    {
-            //        throw;
-            //    }
-            //}
-
-            //return NoContent();
         }
 
         // POST: api/Tournaments
@@ -140,9 +102,9 @@ namespace TournamentAPI.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<TournamentDto>> PostTournament(TournamentDto tournamentDto)
         {
-            if (tournamentDto == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("check why does not work-one");
+                return BadRequest(ModelState);
             }
 
             var tournament =_mapper.Map<Tournament>(tournamentDto);
@@ -151,19 +113,10 @@ namespace TournamentAPI.Api.Controllers
             {
                 await _uOW.CompleteAsync();
             }
-            catch (DbUpdateConcurrencyException ex)
+            catch (DbUpdateConcurrencyException )
             {
-                return StatusCode(409, "check why does not work-two");
+                return StatusCode(500, "Failed");
             }
-
-
-            //_context.Tournaments.Add(tournament);
-            //await _context.SaveChangesAsync();
-
-            //var cTournamentDto = _mapper.Map<TournamentDto>(tournament);
-            //return CreatedAtAction("GetTournament", new { id = tournament.Id }, cTournamentDto);
-
-
 
             var createdTournamentDto = _mapper.Map<TournamentDto>(tournament);
             return CreatedAtAction("GetTournament", new { id = tournament.Id }, createdTournamentDto);
@@ -173,7 +126,7 @@ namespace TournamentAPI.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTournament(int id)
         {
-            //var tournament = await _context.Tournaments.FindAsync(id);
+            
             var tournament = await _uOW.TournamentRepository.GetAsync(id);
             if (tournament == null)
             {
@@ -187,9 +140,6 @@ namespace TournamentAPI.Api.Controllers
 
         }
 
-        //private async Task<bool> TournamentExists(int id)
-        //{
-        //    return await _uOW.TournamentRepository.AnyAsync(e => e.Id == id);
-        //}
+     
     }
 }
